@@ -4,6 +4,7 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 from lxml import etree
+import urllib.parse
 
 class Carro:
     def __init__(self,marca: str,nome: str,ano: str,cor: str,motorizacao: str,km: str,combustivel: str,itens: str,observacao: str,cidade: str,preco: str,link: str =None):
@@ -21,101 +22,99 @@ class Carro:
         self.link = link
 
 def buscar_detalhes(link: str):
-    response = requests.get(url=link, verify=False)
-    marca = 'Não Disponível'
-    nome = 'Não Disponível'
-    ano = 'Não Disponível'
-    cor = 'Não Disponível'
-    motorizacao = 'Não Disponível'
-    km = 'Não Disponível'
-    combustivel = 'Não Disponível'
-    itens = 'Não Disponível'
-    observacao = 'Não Disponível'
-    cidade = 'Não Disponível'
-    preco = 'Não Disponível'
-    link = 'Não Disponível'
-    content_html = BeautifulSoup(response.content,'html.parser')
-    info_carro = content_html.find_all('dl',attrs={"class":"dl-horizontal"})
-    for i in info_carro[0].contents:
-        if '\n' in i:
-            continue
-    #try:
-    #    if 'Marca' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[1]')[0].text:
-    #        marca = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[1]/text()')[0]
-#
-    #    nome = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[2]/h1/text()')[0]
-#
-    #    if 'Ano' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[2]')[0].text:
-    #        ano = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[2]/text()')[0]
-#
-    #    if 'Cor' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[3]')[0].text:
-    #        cor = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[3]/text()')[0]
-    #    
-    #    if 'Motor' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[4]')[0].text:
-    #        motorizacao = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[4]/text()')[0]
-    #    
-    #    if 'Km' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[5]')[0].text:
-    #        km = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[5]/text()')[0]
-#
-    #    if 'Comb' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[6]')[0].text:
-    #        combustivel = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[6]/text()')[0]
-#
-    #    if 'Ítens' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[7]')[0].text: 
-    #        itens = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[7]/text()')[0]
-    #    
-    #    if 'Obs' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[8]')[0].text:
-    #        observacao = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[8]/text()')[0]
-    #    
-    #    if 'Cidade' in tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dt[9]')[0].text:
-    #        cidade = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/dl/dd[9]/text()')[0]
-    #    
-    #    preco = tree.xpath('/html/body/div[1]/div/div[3]/main/div[2]/div[1]/div[1]/div[4]/div/div[1]/span')[0].text
-#
-    #except:
-    #    pass
-    carro = Carro(marca=marca,
-                  nome=nome,
-                  ano=ano,
-                  cor=cor,
-                  motorizacao=motorizacao,
-                  km=km,
-                  combustivel=combustivel,
-                  itens=itens,
-                  observacao=observacao,
-                  cidade=cidade,
-                  preco=preco,
-                  link=link)
-    return carro
+    try:
+        response = requests.get(url=link, verify=False)
+        marca = 'Não Disponível'
+        nome = 'Não Disponível'
+        ano = 'Não Disponível'
+        cor = 'Não Disponível'
+        motorizacao = 'Não Disponível'
+        km = 'Não Disponível'
+        combustivel = 'Não Disponível'
+        itens = 'Não Disponível'
+        observacao = 'Não Disponível'
+        cidade = 'Não Disponível'
+        preco = 'Não Disponível'
 
+        content_html = BeautifulSoup(response.content,'html.parser')
+        nome = content_html.find_all('h1',attrs={"class":"title-item"})[0].text
+        preco = content_html.find_all('div',attrs={"class":"preco"})[0].contents[1].text
+        info_carro = content_html.find_all('dl',attrs={"class":"dl-horizontal"})
+        detalhes_carro = info_carro[0].contents
+        detalhes_carro = [info.text for info in detalhes_carro if info != '\n']
+        for index,item in enumerate(detalhes_carro):
+            if 'marca' in item.lower():
+                marca = detalhes_carro[index+1]
+            elif 'ano' in item.lower():
+                ano = detalhes_carro[index+1]
+            elif 'cor' in item.lower():
+                cor = detalhes_carro[index+1]
+            elif 'motor' in item.lower():
+                motorizacao = detalhes_carro[index+1]
+            elif 'km' in item.lower():
+                km = detalhes_carro[index+1]
+            elif 'comb' in item.lower():
+                combustivel = detalhes_carro[index+1]
+            elif 'ítens' in item.lower():
+                itens = detalhes_carro[index+1]
+            elif 'obs' in item.lower():
+                observacao = detalhes_carro[index+1]
+            elif 'cidade' in item.lower():
+                cidade = detalhes_carro[index+1]
 
-def pesquisar_carro(carro):
-    navegador = webdriver.Chrome()
+        carro = Carro(marca=marca.capitalize(),
+                    nome=nome,
+                    ano=ano,
+                    cor=cor,
+                    motorizacao=motorizacao,
+                    km=km,
+                    combustivel=combustivel,
+                    itens=itens,
+                    observacao=observacao.capitalize(),
+                    cidade=cidade,
+                    preco=preco,
+                    link=link)
+        return carro.__dict__
+    except Exception as e:
+        raise Exception(f'Houve um erro no site da Usado Fácil: {e}')
 
-    navegador.get('https://www.usadofacil.com.br/V6/default.asp')
-    navegador.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/header/div/div/div[1]/div/form/div[2]/input').send_keys(f'{carro}')
-    navegador.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/header/div/div/div[1]/div/form/div[3]/div/select/option[23]').click()
-    navegador.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/header/div/div/div[1]/div/form/div[6]/div/select/option[28]').click()
-    navegador.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/header/div/div/div[1]/div/form/button').submit()
-
+def pesquisar_carro(carro,valor_medio='',ano='',motorizacao='',cidade='',marca=''):
     links_carros = []
-    carros = []
+    dados_carros = []
+    resultado = 'Não foram encontrados carros com esta nomenclatura.'
+    try:
+        pagina_atual = 0
+        url_busca_inicial = f'https://www.usadofacil.com.br/comprar-0/veiculo-{carro}/ano-{ano}/valor-{valor_medio}/cidade-{cidade}/motorizacao-{motorizacao}/default/'
+        response = requests.get(url_busca_inicial)
+        content_html = BeautifulSoup(response.content,'html.parser')
+        carros = content_html.find_all('div',attrs={"class":"panel panel-default panel-lista"})
+        if len(carros) >= 1:
+            total_paginas = int(content_html.find_all('p',attrs={"class":"contador-pag"})[0].contents[3].text)
+            cidade_formatada = urllib.parse.quote(cidade)
+            while pagina_atual != total_paginas:
+                url_busca_all = "https://www.usadofacil.com.br/V6/resultado.asp"
+                header = {'authority': 'www.usadofacil.com.br',
+                            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                            'origin': 'https://www.usadofacil.com.br',
+                            'content-type': 'application/x-www-form-urlencoded',
+                            'referer': f'https://www.usadofacil.com.br/veiculo-{carro}/ano-{ano}/valor-{valor_medio}/motorizacao-{motorizacao}/comum/'}
+                
+                payload = f'CurrentPage={pagina_atual}&veiculo={carro}&valor={valor_medio}&ano={ano}&motorizacao={motorizacao}&cidade={cidade_formatada}&tipo=&origem=comum&ar=&dh=&tr=&ve=&ca=&combustivel=&marca={marca}&filtro-ano=&filtro-valor=&filtro-motor=&filtro-cor-preto=&filtro-cor-cinza=&filtro-cor-prata=&filtro-cor-branco=&filtro-cor-vermelho=&filtro-cor-laranja=&filtro-cor-amarelo=&filtro-cor-marrom=&filtro-cor-azul=&filtro-cor-verde=&filtro-cor-outras=&filtro-ar=&filtro-ve=&filtro-te=&filtro-dh=&filtro-de=&filtro-ca=&Proximo=Pr%C3%B3ximo%20%E2%86%92'
+                response = requests.post(url_busca_all,data=payload, headers=header)
+                content_html = BeautifulSoup(response.content,'html.parser')
+                carros = content_html.find_all('div',attrs={"class":"panel panel-default panel-lista"})
+                for i in carros:
+                    link = i.find_all('a')[0].attrs['href']
+                    link = 'https://www.usadofacil.com.br/V6/' + link
+                    links_carros.append(link)
+                
+                pagina_atual += 1
 
-    while navegador.find_element(By.CSS_SELECTOR,'strong').text != navegador.find_element(By.CSS_SELECTOR,'strong+ strong').text:
-        links = navegador.find_elements(By.CSS_SELECTOR,'.panel-heading')
-        for i in links:
-            link = i.find_element(By.CSS_SELECTOR,'a').get_attribute('href')
-            links_carros.append(link)
-        botoes = navegador.find_elements(By.CSS_SELECTOR,'.tamanho-botao')
-        for botao in botoes:
-            if 'Próximo' in botao.accessible_name:
-                botao.submit()
-            if len(botoes) == 1 and 'Próximo' not in botao.accessible_name:
-                logging.info('Acabaram as páginas.')
-    for i in links_carros:
-        detalhe = buscar_detalhes(i)
-        carros.append(detalhe)
+            for i in links_carros:
+                detalhe = buscar_detalhes(i)
+                dados_carros.append(detalhe)
+                resultado = f'Foram encontrados os seguintes dados'
+    except Exception as e:
+        raise Exception(f'Houve um erro no site da Usado Fácil: {e}')
     
-    return carros
-
-a = buscar_detalhes('https://www.usadofacil.com.br/V6/detalhes.asp?cod=1129852&an=658&veiculo=onix-joy-flex-mecanico')
-print(a)
+    return resultado,dados_carros
